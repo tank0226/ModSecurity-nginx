@@ -13,6 +13,8 @@
  *
  */
 
+#include <ngx_config.h>
+
 #ifndef MODSECURITY_DDEBUG
 #define MODSECURITY_DDEBUG 0
 #endif
@@ -20,9 +22,12 @@
 
 #include "ngx_http_modsecurity_common.h"
 #include "stdio.h"
-#include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
+
+#ifdef _MSC_VER
+#define strdup _strdup
+#endif
 
 static ngx_int_t ngx_http_modsecurity_init(ngx_conf_t *cf);
 static void *ngx_http_modsecurity_create_main_conf(ngx_conf_t *cf);
@@ -131,7 +136,7 @@ ngx_inline char *ngx_str_to_char(ngx_str_t a, ngx_pool_t *p)
 }
 
 
-ngx_inline int
+int
 ngx_http_modsecurity_process_intervention (Transaction *transaction, ngx_http_request_t *r, ngx_int_t early_log)
 {
     char *log = NULL;
@@ -254,7 +259,7 @@ ngx_http_modsecurity_cleanup(void *data)
 }
 
 
-ngx_inline ngx_http_modsecurity_ctx_t *
+ngx_http_modsecurity_ctx_t *
 ngx_http_modsecurity_create_ctx(ngx_http_request_t *r)
 {
     ngx_str_t                          s;
@@ -661,6 +666,9 @@ ngx_http_modsecurity_init_main_conf(ngx_conf_t *cf, void *conf)
                   "%s (rules loaded inline/local/remote: %ui/%ui/%ui)",
                   MODSECURITY_NGINX_WHOAMI, mmcf->rules_inline,
                   mmcf->rules_file, mmcf->rules_remote);
+    ngx_log_error(NGX_LOG_NOTICE, cf->log, 0,
+                  "libmodsecurity3 version %s.%s.%s",
+                  MODSECURITY_MAJOR, MODSECURITY_MINOR, MODSECURITY_PATCHLEVEL);
 
     return NGX_CONF_OK;
 }
